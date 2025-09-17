@@ -1,0 +1,10 @@
+routes:
+  - id: 1
+    uri: "/ndugu.v1.CustomerService/*"
+    plugins:
+      grpc-proxy:
+        socket_timeout: 60s
+    upstream:
+      nodes:
+        "backend:50051": 1
+      scheme: grpc

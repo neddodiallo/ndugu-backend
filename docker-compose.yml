@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/ndugu
+      - SUPABASE_URL=http://supabase:8000
+      - SUPABASE_KEY=your-supabase-key
+
+  apisix:
+    image: apache/apisix:2.13.1-centos
+    volumes:
+      - ./apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
+    ports:
+      - "9080:9080"
+      - "9443:9443"
+    depends_on:
+      - backend
+
+  db:
+    image: supabase/postgres:14.1.0
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ndugu
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # This is a mock for supabase services like auth
+  supabase:
+    image: supabase/gotrue:v2.5.5
+    environment:
+      - GOTRUE_API_HOST=0.0.0.0
+      - GOTRUE_API_PORT=8000
+      - GOTRUE_JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - GOTRUE_DATABASE_DRIVER=postgres
+      - GOTRUE_DATABASE_URL=postgresql://user:password@db:5432/ndugu
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

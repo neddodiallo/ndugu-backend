@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package ndugu.v1;
+
+option go_package = "github.com/ndugu/ndugu-backend/api/v1";
+
+service CustomerService {
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
+}
+
+message CreateCustomerRequest {
+  string phoneCode = 1;
+  string phoneNumber = 2;
+  string password = 3;
+}
+
+message CreateCustomerResponse {
+  string Customer_id = 1;
+}
