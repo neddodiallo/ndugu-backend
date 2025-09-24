@@ -1,0 +1,79 @@
+# Docker Compose pour le développement avec hot reload
+version: '3.8'
+
+services:
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ndugu-backend-dev
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      - .:/app
+      - /app/tmp
+      - /app/docs
+    environment:
+      - GIN_MODE=debug
+      - TZ=UTC
+      - CGO_ENABLED=0
+    networks:
+      - ndugu-network
+    restart: unless-stopped
+    command: ["air", "-c", ".air.toml"]
+
+  # Base de données PostgreSQL pour le développement
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: ndugu-postgres-dev
+    environment:
+      POSTGRES_DB: ndugu_dev
+      POSTGRES_USER: ndugu
+      POSTGRES_PASSWORD: ndugu123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - ndugu-network
+    restart: unless-stopped
+
+  # Redis pour le cache (optionnel)
+  redis-dev:
+    image: redis:7-alpine
+    container_name: ndugu-redis-dev
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - ndugu-network
+    restart: unless-stopped
+
+  # APISIX pour le développement
+  apisix-dev:
+    image: apache/apisix:3.8.0-debian
+    container_name: ndugu-apisix-dev
+    ports:
+      - "9080:9080"
+      - "9443:9443"
+      - "9091:9091"
+    volumes:
+      - ./apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
+    environment:
+      APISIX_STAND_ALONE: "true"
+    networks:
+      - ndugu-network
+    restart: unless-stopped
+    depends_on:
+      - backend-dev
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+
+networks:
+  ndugu-network:
+    driver: bridge

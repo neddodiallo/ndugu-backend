@@ -1,6 +1,18 @@
 routes:
+  # Route pour le service Customer
   - id: 1
     uri: "/ndugu.v1.CustomerService/*"
+    plugins:
+      grpc-proxy:
+        socket_timeout: 60s
+    upstream:
+      nodes:
+        "backend:50051": 1
+      scheme: grpc
+
+  # Route pour le service Auth
+  - id: 2
+    uri: "/ndugu.v1.AuthService/*"
     plugins:
       grpc-proxy:
         socket_timeout: 60s

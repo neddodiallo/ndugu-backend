@@ -1,0 +1,65 @@
+# Fichiers et dossiers à ignorer lors de la construction Docker
+
+# Fichiers de développement
+.git
+.gitignore
+README.md
+*.md
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Fichiers de build et temporaires
+tmp/
+build/
+dist/
+*.log
+*.tmp
+coverage.out
+coverage.html
+
+# Fichiers de test
+*_test.go
+test_*.go
+testdata/
+
+# Fichiers de documentation générés
+docs/swagger.json
+docs/swagger.yaml
+docs/docs.go
+
+# Fichiers de configuration de développement
+.air.toml
+docker-compose.dev.yml
+Dockerfile.dev
+
+# Fichiers de l'IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de cache
+node_modules/
+.npm
+.yarn
+
+# Fichiers de logs
+logs/
+*.log
+
+# Fichiers de base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Fichiers de sauvegarde
+*.bak
+*.backup

@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package ndugu.v1;
+
+option go_package = "ndugu-backend/internal/grpc/api/v1";
+
+import "google/protobuf/timestamp.proto";
+
+// Service pour l'authentification et l'autorisation Ory
+service AuthService {
+  // Gestion des utilisateurs via Kratos
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+  
+  // Gestion des clients OAuth2 via Hydra
+  rpc CreateOAuth2Client(CreateOAuth2ClientRequest) returns (CreateOAuth2ClientResponse);
+  
+  // Gestion des permissions via Keto
+  rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse);
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+}
+
+// Messages pour AuthService - Utilisateurs
+message CreateUserRequest {
+  string email = 1;
+  string firstName = 2;
+  string lastName = 3;
+}
+
+message CreateUserResponse {
+  string userId = 1;
+  string email = 2;
+  string firstName = 3;
+  string lastName = 4;
+  google.protobuf.Timestamp createdAt = 5;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  string userId = 1;
+  string email = 2;
+  string firstName = 3;
+  string lastName = 4;
+  google.protobuf.Timestamp createdAt = 5;
+  google.protobuf.Timestamp updatedAt = 6;
+}
+
+message ValidateSessionRequest {
+  string sessionToken = 1;
+}
+
+message ValidateSessionResponse {
+  bool valid = 1;
+  string userId = 2;
+  string email = 3;
+  google.protobuf.Timestamp expiresAt = 4;
+}
+
+// Messages pour OAuth2
+message CreateOAuth2ClientRequest {
+  string clientId = 1;
+  string clientName = 2;
+  string redirectUri = 3;
+}
+
+message CreateOAuth2ClientResponse {
+  string clientId = 1;
+  string clientName = 2;
+  string clientSecret = 3;
+  repeated string redirectUris = 4;
+}
+
+// Messages pour les permissions
+message CreatePermissionRequest {
+  string namespace = 1;
+  string object = 2;
+  string relation = 3;
+  string subject = 4;
+}
+
+message CreatePermissionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CheckPermissionRequest {
+  string namespace = 1;
+  string object = 2;
+  string relation = 3;
+  string subject = 4;
+}
+
+message CheckPermissionResponse {
+  bool hasPermission = 1;
+  string message = 2;
+}

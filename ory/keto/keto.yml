@@ -1,0 +1,25 @@
+version: v0.11.0
+
+dsn: postgres://user:password@db:5432/ndugu?sslmode=disable&max_conns=20&max_idle_conns=4
+
+serve:
+  read:
+    port: 4466
+  write:
+    port: 4467
+
+log:
+  level: debug
+  format: text
+
+namespaces:
+  - name: files
+    id: 0
+  - name: directories
+    id: 1
+  - name: groups
+    id: 2
+  - name: organizations
+    id: 3
+
+

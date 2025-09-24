@@ -11,19 +11,38 @@ services:
       - db
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/ndugu
-      - SUPABASE_URL=http://supabase:8000
-      - SUPABASE_KEY=your-supabase-key
 
   apisix:
     image: apache/apisix:2.13.1-centos
+    restart: always
     volumes:
-      - ./apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
-      - ./apisix/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
-    ports:
-      - "9080:9080"
-      - "9443:9443"
+      - ./apisix/config-simple.yaml:/usr/local/apisix/conf/config.yaml:ro
     depends_on:
-      - backend
+      - etcd
+    ports:
+      - "9180:9180/tcp"
+      - "9080:9080/tcp"
+      - "9091:9091/tcp"
+      - "9443:9443/tcp"
+      - "9092:9092/tcp"
+
+  etcd:
+    image: rancher/coreos-etcd:v3.4.15-arm64
+    user: root
+    restart: always
+    volumes:
+      - ./etcd_data:/etcd-data
+    environment:
+      ETCD_UNSUPPORTED_ARCH: "arm64"
+      ETCD_ENABLE_V2: "true"
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_DATA_DIR: "/etcd-data"
+    ports:
+      - "2379:2379/tcp"
+    # networks:
+    #   apisix:
 
   db:
     image: supabase/postgres:14.1.0
@@ -36,19 +55,55 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
-  # This is a mock for supabase services like auth
-  supabase:
-    image: supabase/gotrue:v2.5.5
+  # Ory Kratos - Identity Management
+  kratos:
+    image: oryd/kratos:v1.0.0
     environment:
-      - GOTRUE_API_HOST=0.0.0.0
-      - GOTRUE_API_PORT=8000
-      - GOTRUE_JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
-      - GOTRUE_DATABASE_DRIVER=postgres
-      - GOTRUE_DATABASE_URL=postgresql://user:password@db:5432/ndugu
+      - DSN=postgres://user:password@db:5432/ndugu?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - type: bind
+        source: ./ory/kratos
+        target: /etc/config/kratos
+    command: -c /etc/config/kratos/kratos.yml serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
     ports:
-      - "8000:8000"
+      - "4433:4433" # public
+      - "4434:4434" # admin
     depends_on:
       - db
+    restart: on-failure
+
+  # Ory Hydra - OAuth2 and OpenID Connect
+  hydra:
+    image: oryd/hydra:v2.2.0
+    command: serve all --dev -c /etc/config/hydra/hydra-minimal.yml
+    volumes:
+      - type: bind
+        source: ./ory/hydra
+        target: /etc/config/hydra
+    ports:
+      - "4444:4444" # public
+      - "4445:4445" # admin
+    depends_on:
+      - db
+    restart: on-failure
+
+  # Ory Keto - Access Control
+  keto:
+    image: oryd/keto:v0.11.0
+    environment:
+      - DSN=postgres://user:password@db:5432/ndugu?sslmode=disable&max_conns=20&max_idle_conns=4
+    command: serve -c /etc/config/keto/keto.yml
+    volumes:
+      - type: bind
+        source: ./ory/keto
+        target: /etc/config/keto
+    ports:
+      - "4466:4466" # read
+      - "4467:4467" # write
+    depends_on:
+      - db
+    restart: on-failure
 
 volumes:
   db_data:
+  etcd_data:

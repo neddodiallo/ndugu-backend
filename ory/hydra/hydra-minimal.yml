@@ -1,0 +1,48 @@
+version: v2.2.0
+
+dsn: postgres://user:password@db:5432/ndugu?sslmode=disable&max_conns=20&max_idle_conns=4
+
+serve:
+  public:
+    cors:
+      enabled: true
+      allowed_origins:
+        - http://localhost:3000
+        - http://127.0.0.1:3000
+      allowed_methods:
+        - POST
+        - GET
+        - PUT
+        - PATCH
+        - DELETE
+      allowed_headers:
+        - Authorization
+        - Content-Type
+      exposed_headers:
+        - Content-Type
+      allow_credentials: true
+      debug: true
+
+urls:
+  self:
+    issuer: http://127.0.0.1:4444/
+  consent: http://127.0.0.1:3000/consent
+  login: http://127.0.0.1:3000/login
+  logout: http://127.0.0.1:3000/logout
+
+secrets:
+  system:
+    - youReallyNeedToChangeThis
+
+oauth2:
+  expose_internal_errors: true
+  hashers:
+    bcrypt:
+      cost: 8
+  pkce:
+    enforced: true
+    enforced_for_public_clients: true
+
+log:
+  level: debug
+  format: text

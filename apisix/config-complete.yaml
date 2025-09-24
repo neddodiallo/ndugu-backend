@@ -1,0 +1,27 @@
+apisix:
+  node_listen: 9080
+  enable_admin: true
+  enable_admin_cors: true
+  admin_listen:
+    - 0.0.0.0:9180
+  admin_key:
+    - name: "admin"
+      key: edd1c9f034335f136f87ad84b625c8f1
+      role: admin
+  enable_debug: false
+  enable_dev_mode: false
+  enable_reuseport: true
+  enable_ipv6: false
+  config_center: etcd
+  enable_server_tokens: false
+
+etcd:
+  host:
+    - "http://etcd:2379"
+  prefix: "/apisix"
+  timeout: 30
+
+nginx_config:
+  error_log: "/dev/stderr"
+  error_log_level: "warn"
+  worker_processes: "auto"
